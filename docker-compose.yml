@@ -40,48 +40,9 @@ services:
       CONFLUENT_METRICS_ENABLE: 'true'
       CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
 
-       # This "container" is a workaround to pre-create topics for the Kafka Music application
-  # until we have a more elegant way to do that.
-  kafka-create-topics:
-    image: confluentinc/cp-kafka:7.0.0
-    depends_on:
-      - kafka
-    hostname: kafka-create-topics
-    # We defined a dependency on "kafka", but `depends_on` will NOT wait for the
-    # dependencies to be "ready" before starting the "kafka-create-topics"
-    # container;  it waits only until the dependencies have started.  Hence we
-    # must control startup order more explicitly.
-    # See https://docs.docker.com/compose/startup-order/
-    command: "bash -c 'echo Waiting for Kafka to be ready... && \
-                       cub kafka-ready -b kafka:29092 1 20 && \
-                       kafka-topics --create --topic topic-demo-ks --if-not-exists --zookeeper zookeeper:32181 --partitions 4 --replication-factor 1 && \
-                       kafka-topics --create --topic new-demo-topic --if-not-exists --zookeeper zookeeper:32181 --partitions 4 --replication-factor 1 && \
-                       sleep infinity'"
-    environment:
-      # The following settings are listed here only to satisfy the image's requirements.
-      # We override the image's `command` anyways, hence this container will not start a broker.
-      KAFKA_BROKER_ID: ignored
-      KAFKA_ZOOKEEPER_CONNECT: ignored
-
-
-  # Continuously generates input data for the Kafka Music application.
   kafka-demo-app:
-    image: confluentinc/kafka-streams-examples:7.0.0
-    hostname: kafka-music-data-generator
+    image: adam/kafka-streams
+    hostname: kafka-streams-app
     depends_on:
       - kafka
-      - kafka-create-topics
-    # Control startup order similarly to the "kafka-create-topics" container above.
-    command: "bash -c 'echo Waiting for Kafka to be ready... && \
-                       cub kafka-ready -b kafka:29092 1 20 && \
-                       echo Waiting for Confluent Schema Registry to be ready... && \
-                       cub sr-ready schema-registry 8081 20 && \
-                       java -cp /usr/share/java/kafka-streams-examples/kafka-streams-examples-7.0.0-standalone.jar \
-                       io.confluent.examples.streams.interactivequeries.kafkamusic.KafkaMusicExampleDriver \
-                       kafka:29092 http://schema-registry:8081'"
-    environment:
-      STREAMS_BOOTSTRAP_SERVERS: ignored
-      STREAMS_SCHEMA_REGISTRY_HOST: ignored
-      STREAMS_SCHEMA_REGISTRY_PORT: ignored
-      KAFKA_MUSIC_APP_REST_HOST: ignored
-      KAFKA_MUSIC_APP_REST_PORT: ignored
+
