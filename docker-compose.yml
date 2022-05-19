@@ -45,4 +45,6 @@ services:
     hostname: kafka-streams-app
     depends_on:
       - kafka
+    environment:
+      - ADAM_BOOTSTRAP_SERVERS: broker:29092
 

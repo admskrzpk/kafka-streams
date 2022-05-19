@@ -2,9 +2,15 @@ import java.util.Properties
 
 object DemoKafkaStreams extends App {
 
+  //FIXME 1: dodac obsluge tworzenia topicow z zmiennych srodowiskowych
+  //FIXME 2: kolejnosc odpalania servicow
+
+
   import org.apache.kafka.common.serialization.Serdes
   import org.apache.kafka.streams.{KafkaStreams, StreamsBuilder, StreamsConfig}
   val bootstrapServers = sys.env.getOrElse("ADAM_BOOTSTRAP_SERVERS", ":9092")
+  println(s"Adam =[$bootstrapServers]")
+
   val props = new Properties()
   props.put(StreamsConfig.APPLICATION_ID_CONFIG, "demo-ks")
   props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers)
